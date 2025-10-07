@@ -15,9 +15,7 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<ProtectedRoutes />}>
-          <Route element={<Layout />}>
-            <Route element={<Index />} path="/" />
-          </Route>
+          <Route element={<Index />} path="/" />
         </Route>
       </Routes>
     </Router>
