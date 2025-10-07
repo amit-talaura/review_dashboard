@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { INITIAL_REPORTS, MOCK_USERS } from "../constants/mockData";
+import Services from "../network/services/Index";
 
 const Icon = ({ name, className = "w-5 h-5" }) => {
   const icons = {
@@ -78,53 +80,7 @@ const Icon = ({ name, className = "w-5 h-5" }) => {
 };
 // --- END ICON LIBRARY ---
 
-// --- MOCK DATA ---
-const MOCK_USERS = [
-  "Alex Chen",
-  "Priya Sharma",
-  "Omar Hassan",
-  "Emily Brown",
-  "Javi Rodriguez",
-];
-
-const INITIAL_REPORTS = [
-  {
-    id: 1,
-    userName: "Alice J.",
-    date: "2025-10-07",
-    option: "phone",
-    comment:
-      "The contact number listed for Alice J. is outdated. New number is 555-4001.",
-    isResolved: false,
-  },
-  {
-    id: 2,
-    userName: "Bob L.",
-    date: "2025-10-06",
-    option: "mismatch",
-    comment:
-      "The profile photo belongs to a different Bob. Mismatch likely due to similar names.",
-    isResolved: false,
-  },
-  {
-    id: 3,
-    userName: "Charlie V.",
-    date: "2025-10-05",
-    option: "repeat",
-    comment:
-      "The address field for Charlie V. is clearly wrong; this is the third time this report has appeared.",
-    isResolved: false,
-  },
-  {
-    id: 4,
-    userName: "Diana R.",
-    date: "2025-10-04",
-    option: "other",
-    comment:
-      "Reported an issue with notification settings not saving correctly.",
-    isResolved: true,
-  }, // Resolved item
-];
+// using mock data from constants
 
 // --- Utility function for Option Tag styling (More creative colors) ---
 const getTagClasses = (option) => {
@@ -148,7 +104,12 @@ const ReportListItem = ({ report, allUsers }) => {
   const [mismatchUser, setMismatchUser] = useState("");
   const [noteText, setNoteText] = useState("");
 
-  const isMismatch = report.option === "mismatch";
+  const optionList = Array.isArray(report.options)
+    ? report.options
+    : report.option
+    ? [report.option]
+    : [];
+  const isMismatch = optionList.some((o) => String(o).toLowerCase() === "mismatch");
 
   const handleResolve = () => {
     console.log(`Resolving Report ID: ${report.id}. Final Data:`, {
@@ -177,7 +138,7 @@ const ReportListItem = ({ report, allUsers }) => {
     setShowNoteInput(false);
   };
 
-  const tagClasses = getTagClasses(report.option);
+  // compute per-option classes during render
 
   return (
     <div
@@ -201,12 +162,22 @@ const ReportListItem = ({ report, allUsers }) => {
           </p>
         </div>
 
-        {/* Option Tag - Creatively placed for prominence */}
-        <span
-          className={`px-4 py-1 text-xs font-black uppercase rounded-full tracking-wider ${tagClasses}`}
-        >
-          {report.option}
-        </span>
+        {/* Option Tags - support multiple */}
+        <div className="flex flex-wrap gap-2">
+          {(optionList.length ? optionList : ["other"]).map((opt) => {
+            const normalized = String(opt).toLowerCase();
+            return (
+              <span
+                key={`${opt}`}
+                className={`px-4 py-1 text-xs font-black uppercase rounded-full tracking-wider ${getTagClasses(
+                  normalized
+                )}`}
+              >
+                {opt}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       {/* CORE DETAILS: Comment and Conditional Dropdown */}
@@ -321,8 +292,100 @@ const ReportListItem = ({ report, allUsers }) => {
 
 // --- Main App Component ---
 const Index = () => {
+  const [reports, setReports] = useState(INITIAL_REPORTS);
+  const companyId = "68957fc5dbfac0c93516cf59";
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const res = await Services.InsightServices.getInsightReview(companyId);
+        const apiData = res?.data;
+        console.log("apiData=======>>>>>>", apiData);
+
+        // handle common response shapes: array at root or nested under a key
+        const candidates = [
+          apiData,
+          apiData?.data,
+          apiData?.items,
+          apiData?.records,
+          apiData?.result,
+          apiData?.results,
+          apiData?.list,
+        ];
+        const list = candidates.find((c) => Array.isArray(c)) || [];
+
+        if (list.length) {
+          const mapped = list.map((item, idx) => {
+            // Build options from possible shapes and FLATTEN nested arrays
+            let options = [];
+            if (Array.isArray(item.reviews)) {
+              for (const r of item.reviews) {
+                const t = r?.type ?? r?.name ?? r?.value;
+                if (Array.isArray(t)) {
+                  for (const v of t) if (v) options.push(String(v));
+                } else if (t) {
+                  options.push(String(t));
+                }
+              }
+            } else if (Array.isArray(item.reviewTypes)) {
+              for (const v of item.reviewTypes) {
+                if (Array.isArray(v)) {
+                  for (const s of v) if (s) options.push(String(s));
+                } else if (v) options.push(String(v));
+              }
+            } else if (Array.isArray(item.reviewType)) {
+              for (const v of item.reviewType) if (v) options.push(String(v));
+            } else if (typeof item.reviewType === "string") {
+              options = item.reviewType
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            } else if (typeof item.reviews === "string") {
+              options = item.reviews
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            } else if (item.option) {
+              if (Array.isArray(item.option)) {
+                for (const v of item.option) if (v) options.push(String(v));
+              } else {
+                options = [String(item.option)];
+              }
+            }
+
+            // Deduplicate while preserving order
+            const seen = new Set();
+            options = options.filter((v) => {
+              if (seen.has(v)) return false;
+              seen.add(v);
+              return true;
+            });
+
+            return {
+              id: item.id || item._id || idx + 1,
+              userName: item.username || item.user || item.name || "Unknown",
+              date:
+                item.insightDate ||
+                item.createdAt ||
+                item.updatedAt ||
+                new Date().toISOString(),
+              options,
+              option: options[0] || "other",
+              comment: item.reviews[0].comment || item.message || item.description || "",
+              isResolved: Boolean(item.isResolved ?? item.resolved ?? false),
+            };
+          });
+          setReports(mapped);
+        }
+      } catch (e) {
+        console.error("Failed to fetch insight review:", e);
+      }
+    };
+    fetchReports();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-8 font-['Inter']">
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8 font-['Poppins']">
       {/* Load Tailwind CSS */}
       <script src="https://cdn.tailwindcss.com"></script>
 
@@ -336,7 +399,7 @@ const Index = () => {
         </p>
 
         <div className="space-y-6">
-          {INITIAL_REPORTS.map((report) => (
+          {reports.map((report) => (
             <ReportListItem
               key={report.id}
               report={report}

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const AxiosService = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: import.meta.env.VITE_BASE_URL || "https://devbackendapi.talaura.ai",
   headers: {
     "Content-Type": "application/json",
     // "ngrok-skip-browser-warning": "true",
