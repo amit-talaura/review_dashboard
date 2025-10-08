@@ -10,9 +10,12 @@ const getStoreById = async (storeId) => {
   return await AxiosService.get(`${Endpoints.store}/${storeId}`);
 };
 
+const getUserByStore = async (id) => {
+  return await AxiosService.get(Endpoints.getUser(id));
+};
+
 export default {
   getInsightReview,
   getStoreById,
+  getUserByStore,
 };
-
-

@@ -554,8 +554,8 @@ const Conversation = () => {
             </div>
           </div>
 
-          <div className="col-span-3 border-l border-gray-300 px-4 pt-5 bg-slate-50 max-h-[460px] overflow-scroll relative">
-            <div className="space-y-3">
+          <div className="col-span-3 border-l border-gray-300 px-4 pt-5 bg-slate-50 max-h-full overflow-scroll relative ">
+            <div className="space-y-3 h-full">
               {isNaN(sopScore)
                 ? [
                     "After Service Objections",
@@ -618,6 +618,15 @@ const Conversation = () => {
             </div>
           </div>
         </div>
+
+        <SaleConversationPopup
+          setShowDetail={setShowDetail}
+          showDetail={showDetail}
+          showDetailRef={showDetailRef}
+          item={item}
+          key={`${httpUrl}`}
+          httpUrl={httpUrl}
+        />
       </Card>
     </div>
   );

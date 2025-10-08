@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import { INITIAL_REPORTS, MOCK_USERS } from "../constants/mockData";
 import Services from "../network/services/Index";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 const Icon = ({ name, className = "w-5 h-5" }) => {
   const icons = {
@@ -97,10 +99,12 @@ const getTagClasses = (option) => {
 // --- Report List Item Component ---
 const ReportListItem = ({ report, allUsers, conversation, index }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isResolved, setIsResolved] = useState(report.isResolved);
   const [showNoteInput, setShowNoteInput] = useState(false);
-  const [mismatchUser, setMismatchUser] = useState("");
   const [noteText, setNoteText] = useState("");
+  const [salespersonList, setSalespersonList] = useState([]);
+  const [selectedSalesperson, setSelectedSalesPerson] = useState("");
 
   const optionList = Array.isArray(report.options)
     ? report.options
@@ -112,50 +116,30 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
   );
 
   const handleResolve = () => {
-    console.log(`Resolving Report ID: ${report.id}. Final Data:`, {
-      mismatchUser,
-      reviewerNote: noteText,
-    });
     setIsResolved(true);
   };
 
   const handleDelete = () => {
-    console.log(`Deleting Report ID: ${report.id}`);
-    console.log(
-      `[Simulated] Deleting report for ${report.userName}. (Confirmation UI needed)`
-    );
+    return;
   };
 
   const handleViewConversation = (optionList) => {
     navigate("/conversation", {
       state: { item: conversation?.data[index], optionList },
     });
-    console.log(`Viewing conversation history for Report ID: ${report.id}`);
   };
 
   const handleNoteSave = () => {
-    console.log(`Saving note for Report ID ${report.id}: "${noteText}"`);
     setShowNoteInput(false);
   };
 
-  const handleMismatchSelect = async (e) => {
-    const selected = e.target.value;
-
-    setMismatchUser(selected);
+  const fetchSalesPerson = async (id) => {
     try {
-      const storeId =
-        report.storeId ||
-        report.store?.id ||
-        report.reviews?.[0]?.storeId ||
-        "689586632877a2a9eb7ef19b";
-      if (storeId) {
-        const res = await Services.InsightServices.getStoreById(storeId);
-        console.log("Fetched store for mismatch:", storeId, res?.data);
-      } else {
-        console.warn("No storeId found on report to fetch store details.");
-      }
-    } catch (err) {
-      console.error("Failed to fetch store details:", err);
+      const res = await Services.InsightServices.getStoreById(id?.storeId);
+      console.log(";ress ----", res);
+      setSalespersonList(res?.data?.result);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -215,7 +199,10 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
 
         {/* Conditional Mismatch Dropdown - Highly Intuitive Block */}
         {isMismatch && (
-          <div className="p-4 bg-red-50 border border-red-300 rounded-lg shadow-inner">
+          <div
+            className="p-4 bg-red-50 border border-red-300 rounded-lg shadow-inner"
+            onClick={() => fetchSalesPerson(conversation?.data[index])}
+          >
             <label
               htmlFor={`mismatch-user-${report.id}`}
               className="block text-sm font-bold text-red-800 mb-2"
@@ -224,16 +211,17 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
             </label>
             <select
               id={`mismatch-user-${report.id}`}
-              value={mismatchUser}
-              onChange={handleMismatchSelect}
+              value={selectedSalesperson}
+              onChange={(e) => setSelectedSalesPerson(e.target.value)}
               className="mt-1 block w-full pl-4 pr-10 py-2 text-base border-red-400 focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-xl transition duration-200"
             >
               <option value="">-- Choose Replacement User --</option>
-              {allUsers.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
+              {salespersonList &&
+                salespersonList.map((opt) => (
+                  <option key={opt.name} value={opt.name}>
+                    {opt.name}
+                  </option>
+                ))}
             </select>
           </div>
         )}
