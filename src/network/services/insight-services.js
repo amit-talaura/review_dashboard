@@ -6,8 +6,13 @@ const getInsightReview = async (companyId) => {
   return await AxiosService.get(Endpoints.insightReview, { params });
 };
 
+const getStoreById = async (storeId) => {
+  return await AxiosService.get(`${Endpoints.store}/${storeId}`);
+};
+
 export default {
   getInsightReview,
+  getStoreById,
 };
 
 

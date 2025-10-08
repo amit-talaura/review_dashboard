@@ -140,6 +140,23 @@ const ReportListItem = ({ report, allUsers }) => {
 
   // compute per-option classes during render
 
+  const handleMismatchSelect = async (e) => {
+    const selected = e.target.value;
+    console.log("selected=======>>>>>>", selected);
+    setMismatchUser(selected);
+    try {
+      const storeId = report.storeId || report.store?.id || report.reviews?.[0]?.storeId || "689586632877a2a9eb7ef19b";
+      if (storeId) {
+        const res = await Services.InsightServices.getStoreById(storeId);
+        console.log("Fetched store for mismatch:", storeId, res?.data);
+      } else {
+        console.warn("No storeId found on report to fetch store details.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch store details:", err);
+    }
+  };
+
   return (
     <div
       className={`
@@ -206,7 +223,7 @@ const ReportListItem = ({ report, allUsers }) => {
             <select
               id={`mismatch-user-${report.id}`}
               value={mismatchUser}
-              onChange={(e) => setMismatchUser(e.target.value)}
+              onChange={handleMismatchSelect}
               className="mt-1 block w-full pl-4 pr-10 py-2 text-base border-red-400 focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-xl transition duration-200"
             >
               <option value="">-- Choose Replacement User --</option>
@@ -300,7 +317,7 @@ const Index = () => {
       try {
         const res = await Services.InsightServices.getInsightReview(companyId);
         const apiData = res?.data;
-        console.log("apiData=======>>>>>>", apiData);
+        // console.log("apiData=======>>>>>>", apiData);
 
         // handle common response shapes: array at root or nested under a key
         const candidates = [
