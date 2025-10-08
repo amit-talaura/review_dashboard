@@ -192,7 +192,7 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
                   normalized
                 )}`}
               >
-                {opt}--
+                {opt}
               </span>
             );
           })}
