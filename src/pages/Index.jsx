@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { INITIAL_REPORTS, MOCK_USERS } from "../constants/mockData";
 import Services from "../network/services/Index";
+import { useNavigate } from "react-router-dom";
 
 const Icon = ({ name, className = "w-5 h-5" }) => {
   const icons = {
@@ -78,11 +79,7 @@ const Icon = ({ name, className = "w-5 h-5" }) => {
   };
   return icons[name] || null;
 };
-// --- END ICON LIBRARY ---
 
-// using mock data from constants
-
-// --- Utility function for Option Tag styling (More creative colors) ---
 const getTagClasses = (option) => {
   switch (option) {
     case "phone":
@@ -98,7 +95,8 @@ const getTagClasses = (option) => {
 };
 
 // --- Report List Item Component ---
-const ReportListItem = ({ report, allUsers }) => {
+const ReportListItem = ({ report, allUsers, conversation, index }) => {
+  const navigate = useNavigate();
   const [isResolved, setIsResolved] = useState(report.isResolved);
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [mismatchUser, setMismatchUser] = useState("");
@@ -109,7 +107,9 @@ const ReportListItem = ({ report, allUsers }) => {
     : report.option
     ? [report.option]
     : [];
-  const isMismatch = optionList.some((o) => String(o).toLowerCase() === "mismatch");
+  const isMismatch = optionList.some(
+    (o) => String(o).toLowerCase() === "mismatch"
+  );
 
   const handleResolve = () => {
     console.log(`Resolving Report ID: ${report.id}. Final Data:`, {
@@ -126,11 +126,11 @@ const ReportListItem = ({ report, allUsers }) => {
     );
   };
 
-  const handleViewConversation = () => {
+  const handleViewConversation = (optionList) => {
+    navigate("/conversation", {
+      state: { item: conversation?.data[index], optionList },
+    });
     console.log(`Viewing conversation history for Report ID: ${report.id}`);
-    console.log(
-      `[Simulated] Conversation history would appear in a modal or new view.`
-    );
   };
 
   const handleNoteSave = () => {
@@ -138,14 +138,16 @@ const ReportListItem = ({ report, allUsers }) => {
     setShowNoteInput(false);
   };
 
-  // compute per-option classes during render
-
   const handleMismatchSelect = async (e) => {
     const selected = e.target.value;
-    console.log("selected=======>>>>>>", selected);
+
     setMismatchUser(selected);
     try {
-      const storeId = report.storeId || report.store?.id || report.reviews?.[0]?.storeId || "689586632877a2a9eb7ef19b";
+      const storeId =
+        report.storeId ||
+        report.store?.id ||
+        report.reviews?.[0]?.storeId ||
+        "689586632877a2a9eb7ef19b";
       if (storeId) {
         const res = await Services.InsightServices.getStoreById(storeId);
         console.log("Fetched store for mismatch:", storeId, res?.data);
@@ -190,7 +192,7 @@ const ReportListItem = ({ report, allUsers }) => {
                   normalized
                 )}`}
               >
-                {opt}
+                {opt}--
               </span>
             );
           })}
@@ -270,8 +272,8 @@ const ReportListItem = ({ report, allUsers }) => {
       {/* FOOTER: Action Buttons - Clear and Intuitive grouping */}
       <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-100">
         <button
-          onClick={handleViewConversation}
-          className="flex items-center px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-300 hover:bg-gray-100 rounded-xl transition shadow-sm"
+          onClick={() => handleViewConversation(optionList)}
+          className="cursor-pointer flex items-center px-4 py-2 text-sm font-semibold text-gray-600 border border-gray-300 hover:bg-gray-100 rounded-xl transition shadow-sm"
           disabled={isResolved}
         >
           <Icon name="MessageSquare" className="w-4 h-4 mr-2" />
@@ -279,9 +281,24 @@ const ReportListItem = ({ report, allUsers }) => {
         </button>
 
         <button
+          onClick={() => null}
+          // disabled={isResolved}
+          className={`cursor-pointer
+            flex items-center px-4 py-2 text-sm font-bold rounded-xl transition shadow-lg
+            ${
+              isResolved
+                ? "bg-green-500 text-white cursor-default opacity-80"
+                : "bg-indigo-600 hover:bg-indigo-700 text-white transform hover:scale-105"
+            }
+          `}
+        >
+          <Icon name="CheckCircle" className="w-4 h-4 mr-2" />
+          Denied
+        </button>
+        <button
           onClick={handleResolve}
           disabled={isResolved}
-          className={`
+          className={`cursor-pointer
             flex items-center px-4 py-2 text-sm font-bold rounded-xl transition shadow-lg
             ${
               isResolved
@@ -296,7 +313,7 @@ const ReportListItem = ({ report, allUsers }) => {
 
         <button
           onClick={handleDelete}
-          className="flex items-center px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-300 hover:bg-red-100 rounded-xl transition shadow-sm"
+          className=" cursor-pointer flex items-center px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-300 hover:bg-red-100 rounded-xl transition shadow-sm"
           disabled={isResolved}
         >
           <Icon name="Trash2" className="w-4 h-4 mr-2" />
@@ -310,6 +327,7 @@ const ReportListItem = ({ report, allUsers }) => {
 // --- Main App Component ---
 const Index = () => {
   const [reports, setReports] = useState(INITIAL_REPORTS);
+  const [conversation, setConversation] = useState(null);
   // const companyId = "68957fc5dbfac0c93516cf59";
   const companyId = "679750e71f1ea9b797e8ab55";
 
@@ -319,8 +337,7 @@ const Index = () => {
         const res = await Services.InsightServices.getInsightReview(companyId);
         const apiData = res?.data;
         // console.log("apiData=======>>>>>>", apiData);
-
-        // handle common response shapes: array at root or nested under a key
+        setConversation(res?.data);
         const candidates = [
           apiData,
           apiData?.data,
@@ -334,7 +351,6 @@ const Index = () => {
 
         if (list.length) {
           const mapped = list.map((item, idx) => {
-            // Build options from possible shapes and FLATTEN nested arrays
             let options = [];
             if (Array.isArray(item.reviews)) {
               for (const r of item.reviews) {
@@ -371,7 +387,6 @@ const Index = () => {
               }
             }
 
-            // Deduplicate while preserving order
             const seen = new Set();
             options = options.filter((v) => {
               if (seen.has(v)) return false;
@@ -389,10 +404,15 @@ const Index = () => {
                 new Date().toISOString(),
               options,
               option: options[0] || "other",
-              comment: item.reviews[0].comment || item.message || item.description || "",
+              comment:
+                item.reviews[0].comment ||
+                item.message ||
+                item.description ||
+                "",
               isResolved: Boolean(item.isResolved ?? item.resolved ?? false),
             };
           });
+
           setReports(mapped);
         }
       } catch (e) {
@@ -417,8 +437,10 @@ const Index = () => {
         </p>
 
         <div className="space-y-6">
-          {reports.map((report) => (
+          {reports.map((report, index) => (
             <ReportListItem
+              index={index}
+              conversation={conversation}
               key={report.id}
               report={report}
               allUsers={MOCK_USERS}

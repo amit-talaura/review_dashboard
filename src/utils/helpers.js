@@ -47,6 +47,18 @@ export const formatTODDMMYYYY = (dateString) => {
   return `${day} ${month} ${year}`;
 };
 
+export const formatTime = (seconds) => {
+  if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
+
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const paddedMins = String(mins).padStart(2, "0");
+  const paddedSecs = String(secs).padStart(2, "0");
+
+  return `${paddedMins}:${paddedSecs}`;
+};
+
 export function formatDate(dateInput) {
   const date = new Date(dateInput);
   const months = [
@@ -104,4 +116,35 @@ export const intoSeconds = (seconds) => {
 export const toSeconds = (val) => {
   const num = Number(val);
   return Number.isFinite(num) ? num : null; // returns number or null
+};
+
+let currentAudio = null;
+let currentStopFn = null;
+
+export const registerAudio = (audioInstance, stopFn) => {
+  if (currentAudio && currentAudio !== audioInstance) {
+    if (currentStopFn) currentStopFn();
+  }
+  currentAudio = audioInstance;
+  currentStopFn = stopFn;
+};
+
+export const clearAudio = (audioInstance) => {
+  if (currentAudio === audioInstance) {
+    currentAudio = null;
+    currentStopFn = null;
+  }
+};
+
+export const pauseAllAudios = () => {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+    } catch (err) {
+      console.warn("Error stopping audio:", err);
+    }
+    if (currentStopFn) currentStopFn();
+    currentAudio = null;
+    currentStopFn = null;
+  }
 };

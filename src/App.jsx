@@ -8,6 +8,7 @@ import ProtectedRoutes from "./protectedRouted/ProtectedRoutes";
 //pages
 import Login from "./pages/auth/Login";
 import Index from "./pages/Index";
+import Conversation from "./pages/conversation/Conversation";
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route element={<ProtectedRoutes />}>
           <Route element={<Index />} path="/" />
+          <Route element={<Conversation />} path="/conversation" />
         </Route>
       </Routes>
     </Router>
