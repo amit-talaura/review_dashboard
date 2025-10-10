@@ -8,17 +8,19 @@ import ReportListItem from "../components/ReportListItem";
 
 // --- Main App Component ---
 const Index = () => {
-  const [reports, setReports] = useState(INITIAL_REPORTS);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [conversation, setConversation] = useState(null);
   // const companyId = "68957fc5dbfac0c93516cf59";
   const companyId = "679750e71f1ea9b797e8ab55";
 
   useEffect(() => {
     const fetchReports = async () => {
+      setLoading(true);
       try {
         const res = await Services.InsightServices.getInsightReview(companyId);
         const apiData = res?.data;
-        // console.log("apiData=======>>>>>>", apiData);
+        console.log("newsss", apiData);
         setConversation(res?.data);
         const candidates = [
           apiData,
@@ -99,6 +101,8 @@ const Index = () => {
         }
       } catch (e) {
         console.error("Failed to fetch insight review:", e);
+      } finally {
+        setLoading(false);
       }
     };
     fetchReports();
@@ -111,7 +115,7 @@ const Index = () => {
 
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
-          Report Review Dashboard 
+          Report Review Dashboard
         </h1>
         <p className="text-lg text-gray-600 mb-8">
           This list uses an intuitive, card-based design with clear visual cues
@@ -119,15 +123,21 @@ const Index = () => {
         </p>
 
         <div className="space-y-6">
-          {reports.map((report, index) => (
-            <ReportListItem
-              index={index}
-              conversation={conversation}
-              key={report.id}
-              report={report}
-              allUsers={MOCK_USERS}
-            />
-          ))}
+          {loading ? (
+            <p>Loading...</p>
+          ) : reports.length > 0 ? (
+            reports.map((report, index) => (
+              <ReportListItem
+                key={report.id}
+                index={index}
+                conversation={conversation}
+                report={report}
+                allUsers={MOCK_USERS}
+              />
+            ))
+          ) : (
+            <p>No data available!</p>
+          )}
         </div>
       </div>
     </div>

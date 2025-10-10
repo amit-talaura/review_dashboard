@@ -171,13 +171,13 @@ const Conversation = () => {
       100
   );
 
-  const reportOptions = Array.isArray(optionList)
-    ? optionList
-    : [];
+  const reportOptions = Array.isArray(optionList) ? optionList : [];
   const isMismatch = reportOptions.some(
     (o) => String(o).toLowerCase() === "mismatch"
   );
-  const hasMismTag = reportOptions.some((o) => String(o).toUpperCase().includes("MISM"));
+  const hasMismTag = reportOptions.some((o) =>
+    String(o).toUpperCase().includes("MISM")
+  );
 
   const fetchSalesPerson = async (id) => {
     try {
@@ -188,7 +188,13 @@ const Conversation = () => {
     }
   };
 
-  const resolveReviewAction = async ({insightId, actionType, newSalesPersonId = "", resultComment, status = "accept" }) => {
+  const resolveReviewAction = async ({
+    insightId,
+    actionType,
+    newSalesPersonId = "",
+    resultComment,
+    status = "accept",
+  }) => {
     try {
       const payload = {
         insightId: insightId,
@@ -199,6 +205,7 @@ const Conversation = () => {
       const res = await Services.InsightServices.resolveReview(payload);
       console.log("resolve-review response", res?.data);
       setIsResolved(true);
+      navigate("/");
     } catch (err) {
       console.error("resolve-review failed", err);
     }
@@ -562,35 +569,39 @@ const Conversation = () => {
               ) : null}
 
               <div className="flex justify-between items-start flex-col">
-              {hasMismTag && (
-                    <div className="p-4 bg-red-50 border border-red-300 rounded-lg shadow-inner w-full mb-4">
-                      <label
-                        htmlFor={`mismatch-user-${item?.id}`}
-                        className=" text-sm font-bold text-red-800 mb-2"
-                      >
-                        ⚠️ ACTION REQUIRED: Select Correct Username
-                      </label>
-                      <select
-                        id={`mismatch-user-${item?.id}`}
-                        value={selectedSalespersonId}
-                        onChange={(e) => {
-                          setSelectedSalespersonId(e.target.value);
-                          const selectedOption = e.target.selectedOptions?.[0];
-                          if (selectedOption) setSelectedSalesPerson(selectedOption.text);
-                        }}
-                        onClick={() => fetchSalesPerson(item)}
-                        className="mt-1 block w-full pl-4 pr-10 py-2 text-base border-red-400 focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-xl transition duration-200"
-                      >
-                        <option value="">-- Replacement User --</option>
-                        {salespersonList &&
-                          salespersonList.map((opt) => (
-                            <option key={opt._id || opt.id || opt.name} value={opt._id || opt.id}>
-                              {opt.name || opt.fullName || opt.username}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  )}
+                {hasMismTag && (
+                  <div className="p-4 bg-red-50 border border-red-300 rounded-lg shadow-inner w-full mb-4">
+                    <label
+                      htmlFor={`mismatch-user-${item?.id}`}
+                      className=" text-sm font-bold text-red-800 mb-2"
+                    >
+                      ⚠️ ACTION REQUIRED: Select Correct Username
+                    </label>
+                    <select
+                      id={`mismatch-user-${item?.id}`}
+                      value={selectedSalespersonId}
+                      onChange={(e) => {
+                        setSelectedSalespersonId(e.target.value);
+                        const selectedOption = e.target.selectedOptions?.[0];
+                        if (selectedOption)
+                          setSelectedSalesPerson(selectedOption.text);
+                      }}
+                      onClick={() => fetchSalesPerson(item)}
+                      className="mt-1 block w-full pl-4 pr-10 py-2 text-base border-red-400 focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-xl transition duration-200"
+                    >
+                      <option value="">-- Replacement User --</option>
+                      {salespersonList &&
+                        salespersonList.map((opt) => (
+                          <option
+                            key={opt._id || opt.id || opt.name}
+                            value={opt._id || opt.id}
+                          >
+                            {opt.name || opt.fullName || opt.username}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
 
                 <textarea
                   value={noteText}
@@ -601,11 +612,16 @@ const Conversation = () => {
                 ></textarea>
 
                 <div className="flex justify-end w-full items-center mt-4 gap-4">
-                  
-
                   {hasMismTag && (
                     <button
-                      onClick={() => resolveReviewAction({ actionType: "CHANGE_SALES_PERSON", newSalesPersonId: selectedSalespersonId, resultComment: noteText })}
+                      onClick={() =>
+                        resolveReviewAction({
+                          actionType: "CHANGE_SALES_PERSON",
+                          newSalesPersonId: selectedSalespersonId,
+                          resultComment: noteText,
+                          insightId: item?._id,
+                        })
+                      }
                       disabled={isResolved || !selectedSalespersonId}
                       className={`cursor-pointer
                         flex items-center px-4 py-2 text-sm font-bold rounded-xl transition shadow-lg
@@ -614,7 +630,11 @@ const Conversation = () => {
                             ? "bg-green-500 text-white cursor-default opacity-80"
                             : "bg-indigo-600 hover:bg-indigo-700 text-white transform hover:scale-105"
                         }
-                        ${(isResolved || !selectedSalespersonId) ? 'opacity-50 cursor-not-allowed' : ''}
+                        ${
+                          isResolved || !selectedSalespersonId
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }
                       `}
                     >
                       <Icon name="CheckCircle" className="w-4 h-4 mr-2" />
@@ -623,7 +643,12 @@ const Conversation = () => {
                   )}
 
                   <button
-                    onClick={() => resolveReviewAction({ insightId: item?.id, actionType: "REVIEW_DENIED" })}
+                    onClick={() =>
+                      resolveReviewAction({
+                        insightId: item?._id,
+                        actionType: "REVIEW_DENIED",
+                      })
+                    }
                     className={`cursor-pointer
                       flex items-center px-4 py-2 text-sm font-bold rounded-xl transition shadow-lg
                       ${
@@ -638,7 +663,12 @@ const Conversation = () => {
                   </button>
 
                   <button
-                    onClick={() => resolveReviewAction({ insightId: item?.id,  actionType: "DELETE" })}
+                    onClick={() =>
+                      resolveReviewAction({
+                        insightId: item?._id,
+                        actionType: "DELETE",
+                      })
+                    }
                     className=" cursor-pointer flex items-center px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-300 hover:bg-red-100 rounded-xl transition shadow-sm"
                     disabled={isResolved}
                   >
