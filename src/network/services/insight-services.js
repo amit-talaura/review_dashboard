@@ -10,6 +10,10 @@ const getStoreById = async (storeId) => {
   return await AxiosService.get(`${Endpoints.store}/${storeId}`);
 };
 
+const resolveReview = async (payload) => {
+  return await AxiosService.post(Endpoints.resolveReview, payload);
+};
+
 const getUserByStore = async (id) => {
   return await AxiosService.get(Endpoints.getUser(id));
 };
@@ -17,5 +21,6 @@ const getUserByStore = async (id) => {
 export default {
   getInsightReview,
   getStoreById,
+  resolveReview,
   getUserByStore,
 };
