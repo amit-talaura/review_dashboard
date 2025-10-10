@@ -94,7 +94,9 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
   const isMismatch = optionList.some(
     (o) => String(o).toLowerCase() === "mismatch"
   );
-  const hasMismTag = optionList.some((o) => String(o).toUpperCase().includes("MISM"));
+  const hasMismTag = optionList.some((o) =>
+    String(o).toUpperCase().includes("MISM")
+  );
 
   const handleResolve = () => {
     setIsResolved(true);
@@ -114,13 +116,17 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
     try {
       const res = await Services.InsightServices.getStoreById(id?.storeId);
       setSalespersonList(res?.data?.result);
-  
     } catch (error) {
       console.log(error);
     }
   };
 
-  const resolveReviewAction = async ({ actionType, newSalesPersonId = "", resultComment, status = "accept" }) => {
+  const resolveReviewAction = async ({
+    actionType,
+    newSalesPersonId = "",
+    resultComment,
+    status = "accept",
+  }) => {
     try {
       const payload = {
         insightId: report.id,
@@ -215,7 +221,10 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
               <option value="">-- Replacement User --</option>
               {salespersonList &&
                 salespersonList.map((opt) => (
-                  <option key={opt._id || opt.id || opt.name} value={opt._id || opt.id}>
+                  <option
+                    key={opt._id || opt.id || opt.name}
+                    value={opt._id || opt.id}
+                  >
                     {opt.name || opt.fullName || opt.username}
                   </option>
                 ))}
@@ -248,7 +257,13 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
 
         {hasMismTag && (
           <button
-            onClick={() => resolveReviewAction({ actionType: "CHANGE_SALES_PERSON", newSalesPersonId: selectedSalespersonId, resultComment: noteText })}
+            onClick={() =>
+              resolveReviewAction({
+                actionType: "CHANGE_SALES_PERSON",
+                newSalesPersonId: selectedSalespersonId,
+                resultComment: noteText,
+              })
+            }
             disabled={isResolved || !selectedSalespersonId}
             className={`cursor-pointer
               flex items-center px-4 py-2 text-sm font-bold rounded-xl transition shadow-lg
@@ -257,7 +272,11 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
                   ? "bg-green-500 text-white cursor-default opacity-80"
                   : "bg-indigo-600 hover:bg-indigo-700 text-white transform hover:scale-105"
               }
-              ${(isResolved || !selectedSalespersonId) ? 'opacity-50 cursor-not-allowed' : ''}
+              ${
+                isResolved || !selectedSalespersonId
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }
             `}
           >
             <Icon name="CheckCircle" className="w-4 h-4 mr-2" />
@@ -279,7 +298,6 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
           <Icon name="CheckCircle" className="w-4 h-4 mr-2" />
           Denied
         </button>
-        
 
         <button
           onClick={() => resolveReviewAction({ actionType: "DELETE" })}
