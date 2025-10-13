@@ -13,8 +13,8 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const navigate = useNavigate();
-  // const companyId = "68957fc5dbfac0c93516cf59";
-  const companyId = "679750e71f1ea9b797e8ab55";
+  const companyId = "68957fc5dbfac0c93516cf59";
+  // const companyId = "679750e71f1ea9b797e8ab55";
 
   useEffect(() => {
     const fetchReports = async () => {
