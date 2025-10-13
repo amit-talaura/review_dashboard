@@ -354,9 +354,9 @@ const Conversation = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 ">
-          <div className="col-span-9 divide-y">
-            <div className="w-full flex items-center border-gray-300">
+        <div className="grid grid-cols-12 max-h-[500px] overflow-scroll ">
+          <div className="col-span-9 divide-y  ">
+            <div className="w-full flex items-center border-gray-300 border-b border-r">
               <div className="px-3 border-r border-gray-300">
                 <p className="text-gray-400 font-medium">Objections</p>
               </div>
@@ -404,7 +404,7 @@ const Conversation = () => {
                   })}
               </div>
               <div
-                className="px-3 border-l border-gray-300"
+                className="px-3 border-l border-gray-900 "
                 onClick={() =>
                   httpUrl || audioLoading
                     ? null
@@ -449,7 +449,7 @@ const Conversation = () => {
                 ) : null}
               </div>
             </div>
-            <div className="w-full p-3">
+            <div className="w-full p-3 border-r border-gray-300">
               <div className="pl-0 pb-4">
                 <p className="text-sm text-slate-600 mb-1 font-medium">
                   Resolution offered:
@@ -680,7 +680,7 @@ const Conversation = () => {
             </div>
           </div>
 
-          <div className="col-span-3 border-l border-gray-300 px-4 pt-5 bg-slate-50 max-h-full overflow-scroll relative ">
+          <div className="col-span-3 px-4 pt-5 bg-slate-50  overflow-scroll relative ">
             <div className="space-y-3 h-full">
               {isNaN(sopScore)
                 ? [
