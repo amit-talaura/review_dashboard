@@ -91,10 +91,16 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
     : report.option
     ? [report.option]
     : [];
-  const isMismatch = optionList.some(
+  const pendingOptionList = Array.isArray(report.reviews)
+    ? report.reviews
+        .filter((r) => String(r?.status || "").toLowerCase() === "pending")
+        .flatMap((r) => (Array.isArray(r?.type) ? r.type : r?.type ? [r.type] : []))
+        .filter(Boolean)
+    : optionList;
+  const isMismatch = pendingOptionList.some(
     (o) => String(o).toLowerCase() === "mismatch"
   );
-  const hasMismTag = optionList.some((o) =>
+  const hasMismTag = pendingOptionList.some((o) =>
     String(o).toUpperCase().includes("MISM")
   );
 
@@ -129,7 +135,7 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
   }) => {
     try {
       const payload = {
-        insightId: report.id,
+        insightId: report?._id || report?.id,
         resultComment: resultComment ?? noteText ?? "",
         status,
         action: { type: actionType, NEW_SALES_PERSON_ID: newSalesPersonId },
@@ -164,9 +170,9 @@ const ReportListItem = ({ report, allUsers, conversation, index }) => {
           </p>
         </div>
 
-        {/* Option Tags - support multiple */}
+        {/* Option Tags - only show PENDING review types */}
         <div className="flex flex-wrap gap-2">
-          {(optionList.length ? optionList : ["other"]).map((opt) => {
+          {(pendingOptionList.length ? pendingOptionList : ["other"]).map((opt) => {
             const normalized = String(opt).toLowerCase();
             return (
               <span

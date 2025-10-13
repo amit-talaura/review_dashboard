@@ -86,10 +86,11 @@ const Index = () => {
                 item.createdAt ||
                 item.updatedAt ||
                 new Date().toISOString(),
+              reviews: Array.isArray(item.reviews) ? item.reviews : [],
               options,
               option: options[0] || "other",
               comment:
-                item.reviews[0].comment ||
+                (Array.isArray(item.reviews) && item.reviews[0]?.comment) ||
                 item.message ||
                 item.description ||
                 "",
