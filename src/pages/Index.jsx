@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { INITIAL_REPORTS, MOCK_USERS } from "../constants/mockData";
 import Services from "../network/services/Index";
 import ReportListItem from "../components/ReportListItem";
@@ -11,6 +12,7 @@ const Index = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [conversation, setConversation] = useState(null);
+  const navigate = useNavigate();
   // const companyId = "68957fc5dbfac0c93516cf59";
   const companyId = "679750e71f1ea9b797e8ab55";
 
@@ -115,9 +117,20 @@ const Index = () => {
       <script src="https://cdn.tailwindcss.com"></script>
 
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-4">
-          Report Review Dashboard
-        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-4xl font-extrabold text-gray-900">
+            Report Review Dashboard
+          </h1>
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/login");
+            }}
+            className="px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-100 transition shadow-sm"
+          >
+            Logout
+          </button>
+        </div>
         <p className="text-lg text-gray-600 mb-8">
           This list uses an intuitive, card-based design with clear visual cues
           and conditional UI.
