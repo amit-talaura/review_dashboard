@@ -354,7 +354,7 @@ const Conversation = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 ">
+        <div className="grid grid-cols-12 max-h-[500px] overflow-scroll ">
           <div className="col-span-9 divide-y">
             <div className="w-full flex items-center border-gray-300">
               <div className="px-3 border-r border-gray-300">
